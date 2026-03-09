@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AAVE Dashboard</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; background: #0a0e27; color: #fff; }
+        h1 { color: #b6509e; }
+        h2 { color: #2ebac6; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th { background: #1a1f3a; padding: 12px; text-align: left; color: #2ebac6; }
+        td { padding: 10px; border-bottom: 1px solid #222; }
+        tr:hover { background: #1a1f3a; }
+        .positive { color: #4ade80; }
+        .negative { color: #f87171; }
+        .card { background: #1a1f3a; padding: 20px; border-radius: 8px; margin: 15px 0; }
+        .metric { display: inline-block; margin: 10px 20px; }
+        .metric-value { font-size: 32px; font-weight: bold; color: #b6509e; }
+        .metric-label { color: #888; font-size: 14px; }
+        .loading { color: #888; font-style: italic; }
+        .error { color: #f87171; }
+        button { background: #b6509e; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+        button:hover { background: #d472b8; }
+        .last-update { color: #888; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <h1>🦞 AAVE Protocol Dashboard</h1>
+    <p class="last-update">Last updated: <span id="lastUpdate">-</span> <button onclick="loadData()">Refresh</button></p>
+    
+    <div class="card">
+        <h2>Overview</h2>
+        <div class="metric">
+            <div class="metric-value" id="totalReserves">-</div>
+            <div class="metric-label">Total Reserves</div>
+        </div>
+        <div class="metric">
+            <div class="metric-value" id="chainsTracked">-</div>
+            <div class="metric-label">Chains Tracked</div>
+        </div>
+    </div>
+
+    <h2>Top Supply Rates</h2>
+    <table id="supplyTable">
+        <thead>
+            <tr><th>Rank</th><th>Asset</th><th>Chain</th><th>APY</th><th>TVL</th></tr>
+        </thead>
+        <tbody id="supplyBody"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody>
+    </table>
+
+    <h2>Top Borrow Rates</h2>
+    <table id="borrowTable">
+        <thead>
+            <tr><th>Rank</th><th>Asset</th><th>Chain</th><th>APY</th><th>Borrowed</th></tr>
+        </thead>
+        <tbody id="borrowBody"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody>
+    </table>
+
+    <script>
+        const AAVE_API = 'https://aave-api-v2.aave.com/data/markets-data';
+        
+        async function loadData() {
+            document.getElementById('supplyBody').innerHTML = '<tr><td colspan="5" class="loading">Loading...</td></tr>';
+            document.getElementById('borrowBody').innerHTML = '<tr><td colspan="5" class="loading">Loading...</td></tr>';
+            
+            try {
+                const res = await fetch(AAVE_API);
+                const data = await res.json();
+                
+                const reserves = data.data?.reserves || [];
+                document.getElementById('totalReserves').textContent = reserves.length;
+                document.getElementById('chainsTracked').textContent = new Set(reserves.map(r => r.chainId)).size;
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleString();
+                
+                // Sort by supply APY
+                const topSupply = reserves
+                    .filter(r => r.liquidityRate > 0)
+                    .sort((a, b) => b.liquidityRate - a.liquidityRate)
+                    .slice(0, 10);
+                
+                document.getElementById('supplyBody').innerHTML = topSupply.map((r, i) => `
+                    <tr>
+                        <td>${i+1}</td>
+                        <td><strong>${r.symbol}</strong></td>
+                        <td>${r.chainId}</td>
+                        <td>${(r.liquidityRate * 100).toFixed(2)}%</td>
+                        <td>$${(r.totalLiquidityUSD / 1e6).toFixed(1)}M</td>
+                    </tr>
+                `).join('');
+                
+                // Sort by borrow APY
+                const topBorrow = reserves
+                    .filter(r => r.variableBorrowRate > 0)
+                    .sort((a, b) => b.variableBorrowRate - a.variableBorrowRate)
+                    .slice(0, 10);
+                
+                document.getElementById('borrowBody').innerHTML = topBorrow.map((r, i) => `
+                    <tr>
+                        <td>${i+1}</td>
+                        <td><strong>${r.symbol}</strong></td>
+                        <td>${r.chainId}</td>
+                        <td>${(r.variableBorrowRate * 100).toFixed(2)}%</td>
+                        <td>$${(r.totalDebtUSD / 1e6).toFixed(1)}M</td>
+                    </tr>
+                `).join('');
+                
+            } catch (err) {
+                document.getElementById('supplyBody').innerHTML = `<tr><td colspan="5" class="error">Error: ${err.message}</td></tr>`;
+                document.getElementById('borrowBody').innerHTML = `<tr><td colspan="5" class="error">Error: ${err.message}</td></tr>`;
+            }
+        }
+        
+        loadData();
+        setInterval(loadData, 60000); // Auto-refresh every minute
+    </script>
+</body>
+</html>
