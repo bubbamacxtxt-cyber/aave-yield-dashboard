@@ -24,7 +24,7 @@ class AaveDB {
             let sql = `
                 SELECT r.symbol, r.underlying_asset, c.name as chain,
                        s.liquidity_rate as supply_rate, s.price_in_usd,
-                       CAST(s.total_supplied AS REAL) * COALESCE(s.price_in_usd, 0) / 1e18 as tvl_usd,
+                       s.price_in_usd as tvl_usd,
                        ch.supply_rate_change_1d, ch.supply_rate_change_7d
                 FROM reserves r
                 JOIN chains c ON r.chain_id = c.chain_id
@@ -33,7 +33,7 @@ class AaveDB {
                 WHERE s.date = date('now')
                   AND r.is_active = 1
                   ${chain ? 'AND c.name = ?' : ''}
-                  AND CAST(s.total_supplied AS REAL) * COALESCE(s.price_in_usd, 0) / 1e18 >= ?
+                  AND COALESCE(s.price_in_usd, 0) >= ?
                 ORDER BY s.liquidity_rate DESC
                 LIMIT ?
             `;
@@ -52,7 +52,7 @@ class AaveDB {
             let sql = `
                 SELECT r.symbol, c.name as chain,
                        s.variable_borrow_rate as borrow_rate,
-                       CAST(s.total_borrowed AS REAL) * s.price_in_usd / 1e18 as borrowed_usd,
+                       s.price_in_usd * (CAST(s.total_borrowed AS REAL) / NULLIF(CAST(s.total_supplied AS REAL), 0)) as borrowed_usd,
                        ch.borrow_rate_change_1d
                 FROM reserves r
                 JOIN chains c ON r.chain_id = c.chain_id
@@ -105,13 +105,13 @@ class AaveDB {
         return new Promise((resolve, reject) => {
             this.db.all(`
                 SELECT r.symbol, s.liquidity_rate, s.variable_borrow_rate,
-                       CAST(s.total_supplied AS REAL) * s.price_in_usd / 1e18 as tvl_usd,
+                       s.price_in_usd as tvl_usd,
                        s.utilization_rate
                 FROM reserves r
                 JOIN chains c ON r.chain_id = c.chain_id
                 JOIN reserve_snapshots s ON r.id = s.reserve_id
                 WHERE c.name = ? AND s.date = date('now') AND r.is_active = 1
-                ORDER BY tvl_usd DESC
+                ORDER BY s.price_in_usd DESC
                 LIMIT ?
             `, [chainName, limit], (err, rows) => {
                 if (err) return reject(err);
@@ -125,7 +125,7 @@ class AaveDB {
         return new Promise((resolve, reject) => {
             this.db.all(`
                 SELECT s.date, s.liquidity_rate, s.variable_borrow_rate,
-                       CAST(s.total_supplied AS REAL) * s.price_in_usd / 1e18 as tvl_usd
+                       s.price_in_usd as tvl_usd
                 FROM reserves r
                 JOIN chains c ON r.chain_id = c.chain_id
                 JOIN reserve_snapshots s ON r.id = s.reserve_id
@@ -145,8 +145,8 @@ class AaveDB {
                 SELECT 
                     c.name,
                     COUNT(DISTINCT r.id) as total_reserves,
-                    SUM(CAST(s.total_supplied AS REAL) * s.price_in_usd / 1e18) as total_supplied_usd,
-                    SUM(CAST(s.total_borrowed AS REAL) * s.price_in_usd / 1e18) as total_borrowed_usd,
+                    SUM(s.price_in_usd) as total_supplied_usd,
+                    SUM(s.price_in_usd * (CAST(s.total_borrowed AS REAL) / NULLIF(CAST(s.total_supplied AS REAL), 0))) as total_borrowed_usd,
                     AVG(s.liquidity_rate) as avg_supply_rate,
                     AVG(s.variable_borrow_rate) as avg_borrow_rate
                 FROM chains c
@@ -236,7 +236,7 @@ if (require.main === module) {
                 console.log(`Top reserves on ${args[1] || 'ethereum'}:`);
                 rows.forEach((r, i) => {
                     const supply = (r.liquidity_rate * 100).toFixed(2);
-                    const tvl = (r.tvl_usd / 1e6).toFixed(2);
+                    const tvl = r.tvl_usd ? (r.tvl_usd / 1e6).toFixed(2) : '0.00';
                     console.log(`${i+1}. ${r.symbol}: ${supply}% supply, $${tvl}M TVL`);
                 });
             }).finally(() => db.close());

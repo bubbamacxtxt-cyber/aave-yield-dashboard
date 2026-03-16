@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AAVE Yield Dashboard</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            background: #0a0e27; 
+            color: #fff; 
+        }
+        h1 { color: #b6509e; margin-bottom: 5px; }
+        .subtitle { color: #888; margin-bottom: 20px; }
+        h2 { 
+            color: #2ebac6; 
+            border-bottom: 1px solid #333; 
+            padding-bottom: 10px; 
+            margin-top: 30px;
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin: 20px 0; 
+            font-size: 14px;
+        }
+        th { 
+            background: #1a1f3a; 
+            padding: 12px; 
+            text-align: left; 
+            color: #2ebac6; 
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        td { 
+            padding: 10px; 
+            border-bottom: 1px solid #222; 
+        }
+        tr:hover { background: #1a1f3a; }
+        .positive { color: #4ade80; }
+        .negative { color: #f87171; }
+        .card { 
+            background: #1a1f3a; 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin: 15px 0; 
+        }
+        .metrics { display: flex; flex-wrap: wrap; gap: 20px; }
+        .metric { 
+            background: #1a1f3a; 
+            padding: 20px; 
+            border-radius: 8px; 
+            min-width: 150px;
+            flex: 1;
+        }
+        .metric-value { 
+            font-size: 28px; 
+            font-weight: bold; 
+            color: #b6509e; 
+        }
+        .metric-label { 
+            color: #888; 
+            font-size: 14px; 
+            margin-top: 5px;
+        }
+        .loading { color: #888; font-style: italic; text-align: center; padding: 40px; }
+        .error { color: #f87171; padding: 20px; background: #2d1f1f; border-radius: 8px; }
+        button { 
+            background: #b6509e; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 14px; 
+            margin-right: 10px;
+        }
+        button:hover { background: #d472b8; }
+        .last-update { 
+            color: #888; 
+            font-size: 14px; 
+            margin-bottom: 20px;
+        }
+        .chain-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .chain-tab {
+            background: #1a1f3a;
+            border: 1px solid #333;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            color: #888;
+        }
+        .chain-tab:hover, .chain-tab.active {
+            background: #b6509e;
+            color: white;
+            border-color: #b6509e;
+        }
+        .alert-badge {
+            background: #f87171;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .stable-badge {
+            background: #4ade80;
+            color: #0a0e27;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin-left: 8px;
+        }
+        .symbol-cell { font-weight: 600; }
+        .apy-cell { 
+            font-weight: 600; 
+            font-size: 15px;
+        }
+        .tvl-cell { color: #aaa; }
+        .change-cell { font-size: 12px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <h1>📊 AAVE Yield Dashboard</h1>
+    <p class="subtitle">Stablecoin & Asset Lending Rates Across All Chains</p>
+    
+    <p class="last-update">
+        Last updated: <span id="lastUpdate">-</span> 
+        <button onclick="loadData()">Refresh</button>
+        <span id="alertCount"></span>
+    </p>
+    
+    <div class="metrics" id="metrics">
+        <div class="metric">
+            <div class="metric-value" id="totalReserves">-</div>
+            <div class="metric-label">Total Reserves</div>
+        </div>
+        <div class="metric">
+            <div class="metric-value" id="chainsTracked">-</div>
+            <div class="metric-label">Chains</div>
+        </div>
+        <div class="metric">
+            <div class="metric-value" id="topSupplyRate">-</div>
+            <div class="metric-label">Top Supply APY</div>
+        </div>
+        <div class="metric">
+            <div class="metric-value" id="stablecoinCount">-</div>
+            <div class="metric-label">Stablecoins</div>
+        </div>
+    </div>
+
+    <h2>Top Supply Rates</h2>
+    <table id="supplyTable">
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Asset</th>
+                <th>Chain</th>
+                <th>Supply APY</th>
+                <th>1d Change</th>
+                <th>7d Change</th>
+                <th>TVL</th>
+            </tr>
+        </thead>
+        <tbody id="supplyBody">
+            <tr><td colspan="7" class="loading">Loading...</td></tr>
+        </tbody>
+    </table>
+
+    <h2>Lowest Borrow Rates</h2>
+    <table id="borrowTable">
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Asset</th>
+                <th>Chain</th>
+                <th>Borrow APY</th>
+                <th>1d Change</th>
+            </tr>
+        </thead>
+        <tbody id="borrowBody">
+            <tr><td colspan="5" class="loading">Loading...</td></tr>
+        </tbody>
+    </table>
+
+    <h2>By Chain</h2>
+    <div class="chain-tabs" id="chainTabs">
+        <div class="chain-tab active" data-chain="all">All</div>
+        <div class="chain-tab" data-chain="ethereum">Ethereum</div>
+        <div class="chain-tab" data-chain="arbitrum">Arbitrum</div>
+        <div class="chain-tab" data-chain="base">Base</div>
+        <div class="chain-tab" data-chain="optimism">Optimism</div>
+        <div class="chain-tab" data-chain="polygon">Polygon</div>
+        <div class="chain-tab" data-chain="avalanche">Avalanche</div>
+    </div>
+    <table id="chainTable">
+        <thead>
+            <tr>
+                <th>Asset</th>
+                <th>Supply APY</th>
+                <th>Borrow APY</th>
+                <th>TVL</th>
+                <th>Utilization</th>
+            </tr>
+        </thead>
+        <tbody id="chainBody">
+            <tr><td colspan="5" class="loading">Loading...</td></tr>
+        </tbody>
+    </table>
+
+    <script>
+        const STABLECOINS = ['USDC', 'USDT', 'DAI', 'USDe', 'USDS', 'FRAX', 'LUSD', 'GHO', 'crvUSD', 'sUSD', 'syrupUSDC', 'syrupUSDT', 'USDG', 'AUSD', 'RLUSD', 'USDtb', 'USCC', 'USDT0'];
+        
+        function isStablecoin(symbol) {
+            return STABLECOINS.some(s => symbol.toUpperCase().includes(s.toUpperCase()));
+        }
+        
+        function formatAPY(rate) {
+            return (rate * 100).toFixed(2) + '%';
+        }
+        
+        function formatTVL(usd) {
+            if (!usd || usd === 0) return '$0';
+            if (usd >= 1e9) return '$' + (usd / 1e9).toFixed(2) + 'B';
+            if (usd >= 1e6) return '$' + (usd / 1e6).toFixed(2) + 'M';
+            if (usd >= 1e3) return '$' + (usd / 1e3).toFixed(2) + 'K';
+            return '$' + usd.toFixed(2);
+        }
+        
+        function formatChange(val) {
+            if (!val) return '-';
+            const sign = val > 0 ? '+' : '';
+            const className = val > 0 ? 'positive' : (val < 0 ? 'negative' : '');
+            return `<span class="${className}">${sign}${val.toFixed(2)}%</span>`;
+        }
+        
+        let currentData = null;
+        let currentChain = 'all';
+        
+        async function loadData() {
+            document.getElementById('supplyBody').innerHTML = '<tr><td colspan="7" class="loading">Loading...</td></tr>';
+            document.getElementById('borrowBody').innerHTML = '<tr><td colspan="5" class="loading">Loading...</td></tr>';
+            document.getElementById('chainBody').innerHTML = '<tr><td colspan="5" class="loading">Loading...</td></tr>';
+            
+            try {
+                const res = await fetch('/api/data');
+                const data = await res.json();
+                currentData = data;
+                
+                if (data.error) throw new Error(data.error);
+                
+                // Update metrics
+                document.getElementById('totalReserves').textContent = data.topSupply.length;
+                document.getElementById('chainsTracked').textContent = Object.keys(data.chainData).length;
+                document.getElementById('topSupplyRate').textContent = data.topSupply[0] ? formatAPY(data.topSupply[0].supply_rate) : '-';
+                
+                const stableCount = data.topSupply.filter(r => isStablecoin(r.symbol)).length;
+                document.getElementById('stablecoinCount').textContent = stableCount;
+                
+                document.getElementById('lastUpdate').textContent = data.lastSync?.completed_at 
+                    ? new Date(data.lastSync.completed_at).toLocaleString()
+                    : 'Unknown';
+                
+                // Alert count
+                if (data.alerts?.length > 0) {
+                    document.getElementById('alertCount').innerHTML = `<span class="alert-badge">${data.alerts.length} Alerts</span>`;
+                }
+                
+                // Top Supply
+                const stableSupply = data.topSupply.filter(r => isStablecoin(r.symbol)).slice(0, 15);
+                document.getElementById('supplyBody').innerHTML = stableSupply.map((r, i) => `
+                    <tr>
+                        <td>${i+1}</td>
+                        <td class="symbol-cell">${r.symbol} <span class="stable-badge">Stable</span></td>
+                        <td>${r.chain}</td>
+                        <td class="apy-cell positive">${formatAPY(r.supply_rate)}</td>
+                        <td class="change-cell">${formatChange(r.supply_rate_change_1d)}</td>
+                        <td class="change-cell">${formatChange(r.supply_rate_change_7d)}</td>
+                        <td class="tvl-cell">${formatTVL(r.tvl_usd)}</td>
+                    </tr>
+                `).join('');
+                
+                // Top Borrow (lowest rates)
+                const stableBorrow = data.topBorrow.filter(r => isStablecoin(r.symbol)).slice(0, 10);
+                document.getElementById('borrowBody').innerHTML = stableBorrow.map((r, i) => `
+                    <tr>
+                        <td>${i+1}</td>
+                        <td class="symbol-cell">${r.symbol} <span class="stable-badge">Stable</span></td>
+                        <td>${r.chain}</td>
+                        <td class="apy-cell">${formatAPY(r.borrow_rate)}</td>
+                        <td class="change-cell">${formatChange(r.borrow_rate_change_1d)}</td>
+                    </tr>
+                `).join('');
+                
+                // Chain data
+                renderChainData();
+                
+            } catch (err) {
+                document.getElementById('supplyBody').innerHTML = `<tr><td colspan="7" class="error">Error: ${err.message}</td></tr>`;
+            }
+        }
+        
+        function renderChainData() {
+            if (!currentData) return;
+            
+            let reserves = [];
+            if (currentChain === 'all') {
+                // Combine all chains
+                Object.values(currentData.chainData).forEach(chainReserves => {
+                    reserves.push(...chainReserves);
+                });
+            } else {
+                reserves = currentData.chainData[currentChain] || [];
+            }
+            
+            // Filter to stablecoins and sort by TVL
+            reserves = reserves
+                .filter(r => isStablecoin(r.symbol))
+                .sort((a, b) => (b.tvl_usd || 0) - (a.tvl_usd || 0))
+                .slice(0, 20);
+            
+            document.getElementById('chainBody').innerHTML = reserves.map(r => `
+                <tr>
+                    <td class="symbol-cell">${r.symbol} <span class="stable-badge">Stable</span></td>
+                    <td class="apy-cell positive">${formatAPY(r.liquidity_rate)}</td>
+                    <td>${formatAPY(r.variable_borrow_rate)}</td>
+                    <td class="tvl-cell">${formatTVL(r.tvl_usd)}</td>
+                    <td>${(r.utilization_rate * 100).toFixed(1)}%</td>
+                </tr>
+            `).join('') || '<tr><td colspan="5" class="loading">No stablecoin data</td></tr>';
+        }
+        
+        // Chain tab handlers
+        document.getElementById('chainTabs').addEventListener('click', (e) => {
+            if (e.target.classList.contains('chain-tab')) {
+                document.querySelectorAll('.chain-tab').forEach(t => t.classList.remove('active'));
+                e.target.classList.add('active');
+                currentChain = e.target.dataset.chain;
+                renderChainData();
+            }
+        });
+        
+        // Load on start
+        loadData();
+        
+        // Auto-refresh every 5 minutes
+        setInterval(loadData, 300000);
+    </script>
+</body>
+</html>

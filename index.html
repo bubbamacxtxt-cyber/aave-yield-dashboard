@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AAVE Yield Dashboard</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            background: #0a0e27; 
+            color: #fff; 
+            line-height: 1.6;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header { margin-bottom: 30px; }
+        h1 { color: #b6509e; font-size: 2rem; margin-bottom: 5px; }
+        .subtitle { color: #888; }
+        .last-update { color: #666; font-size: 14px; margin-top: 10px; }
+        .metrics { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 20px; 
+            margin-bottom: 30px;
+        }
+        .metric { 
+            background: #1a1f3a; 
+            padding: 20px; 
+            border-radius: 12px; 
+            text-align: center;
+        }
+        .metric-value { font-size: 2rem; font-weight: bold; color: #b6509e; }
+        .metric-label { color: #888; font-size: 14px; margin-top: 5px; }
+        h2 { color: #2ebac6; border-bottom: 2px solid #333; padding-bottom: 10px; margin: 40px 0 20px; }
+        table { width: 100%; border-collapse: collapse; background: #1a1f3a; border-radius: 12px; overflow: hidden; }
+        th { background: #0f1329; padding: 15px; text-align: left; color: #2ebac6; font-weight: 600; font-size: 14px; }
+        td { padding: 12px 15px; border-bottom: 1px solid #252a47; font-size: 14px; }
+        tr:hover { background: #252a47; }
+        tr:last-child td { border-bottom: none; }
+        .positive { color: #4ade80; }
+        .negative { color: #f87171; }
+        .neutral { color: #888; }
+        .symbol { font-weight: 600; }
+        .badge { background: #4ade80; color: #0a0e27; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; margin-left: 8px; }
+        .apy { font-weight: 600; font-size: 15px; }
+        .tvl { color: #aaa; font-size: 13px; }
+        .loading { text-align: center; padding: 40px; color: #888; }
+        .error { background: #2d1f1f; color: #f87171; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .chain-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .chain-tab { background: #1a1f3a; border: 1px solid #333; padding: 10px 20px; border-radius: 8px; cursor: pointer; color: #888; font-size: 14px; }
+        .chain-tab:hover, .chain-tab.active { background: #b6509e; color: white; border-color: #b6509e; }
+        footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #333; color: #666; font-size: 12px; text-align: center; }
+        footer a { color: #2ebac6; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 AAVE Yield Dashboard</h1>
+            <p class="subtitle">Stablecoin Lending Rates Across All Chains</p>
+            <p class="last-update">Last updated: <span id="lastUpdate">Loading...</span></p>
+        </header>
+        
+        <div class="metrics">
+            <div class="metric">
+                <div class="metric-value" id="totalReserves">-</div>
+                <div class="metric-label">Total Reserves</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value" id="chainsTracked">-</div>
+                <div class="metric-label">Chains</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value" id="topSupplyRate">-</div>
+                <div class="metric-label">Top Supply APY</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value" id="stablecoinCount">-</div>
+                <div class="metric-label">Stablecoins</div>
+            </div>
+        </div>
+
+        <h2>Top Stablecoin Supply Rates</h2>
+        <table id="supplyTable">
+            <thead>
+                <tr><th>Rank</th><th>Asset</th><th>Chain</th><th>Supply APY</th><th>TVL</th></tr>
+            </thead>
+            <tbody id="supplyBody"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody>
+        </table>
+
+        <h2>Lowest Stablecoin Borrow Rates</h2>
+        <table id="borrowTable">
+            <thead>
+                <tr><th>Rank</th><th>Asset</th><th>Chain</th><th>Borrow APY</th></tr>
+            </thead>
+            <tbody id="borrowBody"><tr><td colspan="4" class="loading">Loading...</td></tr></tbody>
+        </table>
+
+        <footer>
+            <p>Data source: Aave Protocol v3 | Live data from API</p>
+            <p>Built with OpenClaw</p>
+        </footer>
+    </div>
+
+    <script>
+        const AAVE_API = 'https://api.v3.aave.com/graphql';
+        const STABLECOINS = ['USDC','USDT','DAI','USDe','USDS','FRAX','LUSD','GHO','crvUSD','sUSD','USDG','AUSD','RLUSD','USDtb','USCC','USDT0'];
+        
+        function isStable(s) { return STABLECOINS.some(x => s.toUpperCase().includes(x.toUpperCase())); }
+        function fmtAPY(r) { return (r*100).toFixed(2)+'%'; }
+        function fmtTVL(u) { 
+            if(!u)return'$0'; 
+            if(u>=1e9)return'$'+(u/1e9).toFixed(2)+'B'; 
+            if(u>=1e6)return'$'+(u/1e6).toFixed(2)+'M'; 
+            if(u>=1e3)return'$'+(u/1e3).toFixed(2)+'K'; 
+            return'$'+u.toFixed(2);
+        }
+        
+        async function load() {
+            try {
+                const q = `query{markets{chain{name}reserves{underlyingToken{symbol}supplyInfo{apy{value}total{raw}}borrowInfo{apy{value}}isPaused isFrozen}}}`;
+                const r = await fetch(AAVE_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:q})});
+                const d = await r.json();
+                
+                const all=[];
+                for(const m of d.data.markets){
+                    for(const r of m.reserves){
+                        if(r.isPaused||r.isFrozen||!r.underlyingToken)continue;
+                        const s=r.underlyingToken.symbol;
+                        if(!isStable(s))continue;
+                        all.push({
+                            symbol:s,
+                            chain:m.chain.name,
+                            supply:r.supplyInfo?.apy?.value||0,
+                            borrow:r.borrowInfo?.apy?.value||0,
+                            tvl:Number(r.supplyInfo?.total?.raw||0)/1e18
+                        });
+                    }
+                }
+                
+                document.getElementById('lastUpdate').textContent=new Date().toLocaleString();
+                document.getElementById('totalReserves').textContent=all.length;
+                document.getElementById('chainsTracked').textContent=new Set(all.map(x=>x.chain)).size;
+                document.getElementById('stablecoinCount').textContent=all.length;
+                
+                const topSupply=all.sort((a,b)=>b.supply-a.supply).slice(0,15);
+                document.getElementById('topSupplyRate').textContent=fmtAPY(topSupply[0]?.supply||0);
+                document.getElementById('supplyBody').innerHTML=topSupply.map((x,i)=>`
+                    <tr><td>${i+1}</td><td class="symbol">${x.symbol}<span class="badge">Stable</span></td>
+                    <td>${x.chain}</td><td class="apy positive">${fmtAPY(x.supply)}</td><td class="tvl">${fmtTVL(x.tvl)}</td></tr>
+                `).join('');
+                
+                const topBorrow=all.filter(x=>x.borrow>0).sort((a,b)=>a.borrow-b.borrow).slice(0,10);
+                document.getElementById('borrowBody').innerHTML=topBorrow.map((x,i)=>`
+                    <tr><td>${i+1}</td><td class="symbol">${x.symbol}<span class="badge">Stable</span></td>
+                    <td>${x.chain}</td><td class="apy">${fmtAPY(x.borrow)}</td></tr>
+                `).join('')||'<tr><td colspan="4">No data</td></tr>';
+                
+            } catch(e) {
+                document.getElementById('supplyBody').innerHTML=`<tr><td colspan="5" class="error">Error: ${e.message}</td></tr>`;
+            }
+        }
+        
+        load();
+    </script>
+</body>
+</html>

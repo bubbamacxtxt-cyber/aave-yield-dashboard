@@ -9,10 +9,16 @@
     "query": "node query.js",
     "test": "echo 'Run: npm run fetch' to test"
   },
-  "keywords": ["aave", "defi", "yields", "api"],
+  "keywords": [
+    "aave",
+    "defi",
+    "yields",
+    "api"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "express": "^5.2.1",
     "sqlite3": "^5.1.7"
   }
 }

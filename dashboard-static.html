@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AAVE Yield Dashboard - Static</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            background: #0a0e27; 
+            color: #fff; 
+        }
+        h1 { color: #b6509e; margin-bottom: 5px; }
+        .subtitle { color: #888; margin-bottom: 20px; }
+        h2 { 
+            color: #2ebac6; 
+            border-bottom: 1px solid #333; 
+            padding-bottom: 10px; 
+            margin-top: 30px;
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin: 20px 0; 
+            font-size: 14px;
+        }
+        th { 
+            background: #1a1f3a; 
+            padding: 12px; 
+            text-align: left; 
+            color: #2ebac6; 
+            font-weight: 600;
+        }
+        td { 
+            padding: 10px; 
+            border-bottom: 1px solid #222; 
+        }
+        tr:hover { background: #1a1f3a; }
+        .positive { color: #4ade80; }
+        .negative { color: #f87171; }
+        .metric { 
+            background: #1a1f3a; 
+            padding: 20px; 
+            border-radius: 8px; 
+            display: inline-block;
+            margin: 10px 20px 10px 0;
+            min-width: 150px;
+        }
+        .metric-value { 
+            font-size: 28px; 
+            font-weight: bold; 
+            color: #b6509e; 
+        }
+        .metric-label { 
+            color: #888; 
+            font-size: 14px; 
+            margin-top: 5px;
+        }
+        .last-update { 
+            color: #888; 
+            font-size: 14px; 
+            margin-bottom: 20px;
+        }
+        .stable-badge {
+            background: #4ade80;
+            color: #0a0e27;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin-left: 8px;
+        }
+        .apy { font-weight: 600; font-size: 15px; }
+        .tvl { color: #aaa; }
+        .symbol { font-weight: 600; }
+    </style>
+</head>
+<body>
+    <h1>📊 AAVE Yield Dashboard</h1>
+    <p class="subtitle">Stablecoin Lending Rates - All Chains</p>
+    <p class="last-update">Last updated: March 16, 2026 14:16 UTC</p>
+    
+    <div>
+        <div class="metric">
+            <div class="metric-value">50</div>
+            <div class="metric-label">Total Reserves</div>
+        </div>
+        <div class="metric">
+            <div class="metric-value">6</div>
+            <div class="metric-label">Chains</div>
+        </div>
+        <div class="metric">
+            <div class="metric-value">9.55%</div>
+            <div class="metric-label">Top Supply APY</div>
+        </div>
+    </div>
+
+    <h2>Top 15 Stablecoin Supply Rates</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Asset</th>
+                <th>Chain</th>
+                <th>Supply APY</th>
+                <th>1d Change</th>
+                <th>7d Change</th>
+                <th>TVL</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>1</td><td class="symbol">AUSD <span class="stable-badge">Stable</span></td><td>Avalanche</td><td class="apy positive">9.55%</td><td class="positive">+203.63%</td><td class="negative">-20.93%</td><td class="tvl">$301K</td></tr>
+            <tr><td>2</td><td class="symbol">USDG <span class="stable-badge">Stable</span></td><td>Ethereum</td><td class="apy positive">4.56%</td><td class="positive">+0.97%</td><td class="negative">-26.96%</td><td class="tvl">$51.7M</td></tr>
+            <tr><td>3</td><td class="symbol">GHO <span class="stable-badge">Stable</span></td><td>Avalanche</td><td class="apy positive">3.98%</td><td class="negative">-0.01%</td><td class="positive">+2.41%</td><td class="tvl">$2.14M</td></tr>
+            <tr><td>4</td><td class="symbol">DAI <span class="stable-badge">Stable</span></td><td>Polygon</td><td class="apy positive">3.32%</td><td class="positive">+1.56%</td><td class="positive">+4.67%</td><td class="tvl">$4.59M</td></tr>
+            <tr><td>5</td><td class="symbol">crvUSD <span class="stable-badge">Stable</span></td><td>Ethereum</td><td class="apy positive">3.27%</td><td class="positive">+1.05%</td><td class="positive">+1.08%</td><td class="tvl">$227K</td></tr>
+            <tr><td>6</td><td class="symbol">USDC <span class="stable-badge">Stable</span></td><td>Polygon</td><td class="apy positive">3.24%</td><td class="positive">+14.07%</td><td class="positive">+35.34%</td><td class="tvl">$4.20M</td></tr>
+            <tr><td>7</td><td class="symbol">USDC <span class="stable-badge">Stable</span></td><td>Base</td><td class="apy positive">2.54%</td><td class="positive">+1.81%</td><td class="positive">+2.80%</td><td class="tvl">$395M</td></tr>
+            <tr><td>8</td><td class="symbol">USDT0 <span class="stable-badge">Stable</span></td><td>Polygon</td><td class="apy positive">2.31%</td><td class="negative">-0.67%</td><td class="negative">-6.02%</td><td class="tvl">$44.3M</td></tr>
+            <tr><td>9</td><td class="symbol">USDS <span class="stable-badge">Stable</span></td><td>Ethereum</td><td class="apy positive">2.09%</td><td class="positive">+0.01%</td><td class="positive">+0.21%</td><td class="tvl">$263K</td></tr>
+            <tr><td>10</td><td class="symbol">USDC <span class="stable-badge">Stable</span></td><td>Avalanche</td><td class="apy positive">2.09%</td><td class="positive">+1.94%</td><td class="positive">+16.85%</td><td class="tvl">$101M</td></tr>
+            <tr><td>11</td><td class="symbol">USDC <span class="stable-badge">Stable</span></td><td>Polygon</td><td class="apy positive">1.91%</td><td class="positive">+2.27%</td><td class="negative">-5.31%</td><td class="tvl">$41.7M</td></tr>
+            <tr><td>12</td><td class="symbol">DAI <span class="stable-badge">Stable</span></td><td>Optimism</td><td class="apy positive">1.91%</td><td class="negative">-2.28%</td><td class="negative">-12.46%</td><td class="tvl">$928K</td></tr>
+            <tr><td>13</td><td class="symbol">USDC <span class="stable-badge">Stable</span></td><td>Ethereum</td><td class="apy positive">1.86%</td><td class="negative">-15.54%</td><td class="negative">-16.10%</td><td class="tvl">$18.2M</td></tr>
+            <tr><td>14</td><td class="symbol">USDC <span class="stable-badge">Stable</span></td><td>Arbitrum</td><td class="apy positive">1.83%</td><td class="positive">+0.12%</td><td class="positive">+1.95%</td><td class="tvl">$1.79M</td></tr>
+            <tr><td>15</td><td class="symbol">DAI <span class="stable-badge">Stable</span></td><td>Arbitrum</td><td class="apy positive">1.74%</td><td class="positive">+1.04%</td><td class="negative">-33.27%</td><td class="tvl">$4.92M</td></tr>
+        </tbody>
+    </table>
+
+    <h2>Key Insights</h2>
+    <ul>
+        <li><strong>Highest yield:</strong> AUSD on Avalanche at 9.55% (but only $301K TVL - high risk/illiquid)</li>
+        <li><strong>Best balance:</strong> USDC on Base at 2.54% with $395M TVL (deep liquidity)</li>
+        <li><strong>Rate spikes:</strong> AUSD up 203% in 24h, USDC on Polygon up 14%</li>
+        <li><strong>Rate drops:</strong> USDC on Ethereum down 15.5% (was higher yesterday)</li>
+        <li><strong>Consistent:</strong> USDS on Ethereum stable at ~2.09%</li>
+    </ul>
+
+    <h2>Chains Tracked</h2>
+    <p>Ethereum, Polygon, Avalanche, Arbitrum, Optimism, Base</p>
+
+    <p style="color: #666; margin-top: 40px; font-size: 12px;">
+        Data source: Aave v3 API | Updates every 12 hours via cron | 
+        <a href="STATUS.md" style="color: #2ebac6;">View full status</a>
+    </p>
+</body>
+</html>
