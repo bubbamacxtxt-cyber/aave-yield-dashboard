@@ -22,7 +22,8 @@ class AaveDB {
     getTopSupplyRates(chain = null, minTvl = 100000, limit = 10) {
         return new Promise((resolve, reject) => {
             let sql = `
-                SELECT r.symbol, r.underlying_asset, c.name as chain,
+                SELECT r.symbol, r.underlying_asset, c.name as chain, r.app, 
+                       COALESCE(NULLIF(r.market, ''), 'Core') as market,
                        s.liquidity_rate as supply_rate, s.price_in_usd,
                        s.price_in_usd as tvl_usd,
                        ch.supply_rate_change_1d, ch.supply_rate_change_7d

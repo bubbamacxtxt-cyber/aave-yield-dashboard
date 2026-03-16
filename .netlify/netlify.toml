@@ -1,0 +1,43 @@
+functionsDirectory = "/home/node/.openclaw/workspace/aave-db/netlify/functions"
+functionsDirectoryOrigin = "config"
+redirectsOrigin = "config"
+plugins = []
+headers = []
+
+[build]
+publish = "/home/node/.openclaw/workspace/aave-db"
+publishOrigin = "config"
+commandOrigin = "config"
+command = "echo 'Static site - no build needed'"
+functions = "/home/node/.openclaw/workspace/aave-db/netlify/functions"
+
+[build.environment]
+NODE_VERSION = "18"
+
+[build.processing]
+
+[build.processing.css]
+
+[build.processing.html]
+
+[build.processing.images]
+
+[build.processing.js]
+
+[build.services]
+
+[functions]
+
+[functions."*"]
+
+[[redirects]]
+from = "/"
+to = "/index.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]

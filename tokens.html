@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token List - Yield Dashboard</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a0e27; color: #fff; line-height: 1.6; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header { margin-bottom: 30px; }
+        h1 { color: #b6509e; font-size: 2rem; margin-bottom: 5px; }
+        .subtitle { color: #888; margin-bottom: 20px; }
+        .nav { margin-bottom: 30px; }
+        .nav a { color: #2ebac6; text-decoration: none; padding: 10px 20px; border: 1px solid #2ebac6; border-radius: 6px; margin-right: 10px; display: inline-block; }
+        .nav a:hover { background: #2ebac6; color: #0a0e27; }
+        .search { margin-bottom: 20px; }
+        .search input { background: #1a1f3a; color: #fff; border: 1px solid #333; padding: 12px 16px; border-radius: 8px; width: 100%; max-width: 400px; font-size: 16px; }
+        .token-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
+        .token { background: #1a1f3a; padding: 15px; border-radius: 8px; text-align: center; cursor: pointer; transition: background 0.2s; }
+        .token:hover { background: #252a47; }
+        .token-symbol { font-weight: 600; font-size: 16px; color: #2ebac6; }
+        .token-count { color: #888; font-size: 12px; margin-top: 5px; }
+        .loading { color: #888; text-align: center; padding: 40px; }
+        footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #333; color: #666; font-size: 12px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🪙 Token List</h1>
+            <p class="subtitle">Unique stablecoin tickers across all protocols</p>
+        </header>
+        
+        <nav class="nav">
+            <a href="index.html">← Back to Yield Dashboard</a>
+        </nav>
+        
+        <div class="search">
+            <input type="text" id="search" placeholder="Search tokens..." onkeyup="filterTokens()">
+        </div>
+        
+        <div id="tokenList" class="token-grid">
+            <div class="loading">Loading tokens...</div>
+        </div>
+
+        <footer>
+            <p>Use this list when researching new protocols to integrate</p>
+        </footer>
+    </div>
+
+    <script>
+        let uniqueTokens = [];
+        
+        async function load() {
+            try {
+                const r = await fetch('data.json');
+                const d = await r.json();
+                
+                // Get unique STABLECOIN symbols only (matching yield page filter)
+                const STABLECOINS = ['USDC','USDT','DAI','USDe','USDS','FRAX','LUSD','GHO','crvUSD','sUSD','USDG','AUSD','RLUSD','USDtb','USCC','USDT0','sUSDe','syrupUSDC','syrupUSDT','USDbC','FDUSD','mUSD','sDAI','WXDAI','EURe','PT-'];
+                const allSymbols = [...d.topSupply.map(x => x.symbol), ...d.topBorrow.map(x => x.symbol)];
+                
+                // Filter to stablecoins only
+                const stableSymbols = allSymbols.filter(s => STABLECOINS.some(stable => s.toUpperCase().includes(stable.toUpperCase())));
+                
+                const counts = {};
+                stableSymbols.forEach(s => { counts[s] = (counts[s] || 0) + 1; });
+                
+                uniqueTokens = Object.keys(counts).sort();
+                renderTokens();
+                
+            } catch(e) {
+                document.getElementById('tokenList').innerHTML = `<div class="loading">Error: ${e.message}</div>`;
+            }
+        }
+        
+        function renderTokens() {
+            const search = document.getElementById('search').value.toLowerCase();
+            const filtered = uniqueTokens.filter(t => t.toLowerCase().includes(search));
+            
+            document.getElementById('tokenList').innerHTML = filtered.map(t => `
+                <div class="token">
+                    <div class="token-symbol">${t}</div>
+                </div>
+            `).join('') || '<div class="loading">No tokens match</div>';
+        }
+        
+        function filterTokens() {
+            renderTokens();
+        }
+        
+        load();
+    </script>
+</body>
+</html>

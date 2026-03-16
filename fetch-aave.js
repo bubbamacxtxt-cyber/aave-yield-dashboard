@@ -81,20 +81,23 @@ function storeReserve(db, reserve, chainId) {
     return new Promise((resolve, reject) => {
         db.run(`
             INSERT INTO reserves (
-                id, chain_id, underlying_asset, symbol, decimals,
+                id, chain_id, app, market, underlying_asset, symbol, decimals,
                 a_token_address, stable_debt_token_address, variable_debt_token_address,
                 is_active, is_frozen, is_paused, borrowing_enabled, stable_borrow_rate_enabled,
                 updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
             ON CONFLICT(id) DO UPDATE SET
                 is_active = excluded.is_active,
                 is_frozen = excluded.is_frozen,
                 is_paused = excluded.is_paused,
                 borrowing_enabled = excluded.borrowing_enabled,
+                market = excluded.market,
                 updated_at = excluded.updated_at
         `, [
             reserve.id,
             chainId,
+            'Aave',
+            reserve.market || 'Core',
             reserve.underlyingAsset,
             reserve.symbol,
             reserve.decimals,
@@ -279,7 +282,8 @@ async function fetchChainData(db, chainName) {
                     }
                     
                     const token = reserve.underlyingToken;
-                    const reserveId = `${chainName}_${token.address}`;
+                    const marketName = market.name || 'Core';
+                    const reserveId = `${chainName}_${marketName}_${token.address}`;
                     
                     const reserveData = {
                         id: reserveId,
@@ -291,7 +295,8 @@ async function fetchChainData(db, chainName) {
                         isActive: !reserve.isPaused && !reserve.isFrozen,
                         isFrozen: reserve.isFrozen === true,
                         isPaused: reserve.isPaused === true,
-                        borrowingEnabled: !reserve.isPaused
+                        borrowingEnabled: !reserve.isPaused,
+                        market: marketName
                     };
                     
                     await storeReserve(db, reserveData, chainId);
@@ -341,9 +346,9 @@ async function main() {
                 function(err) { if (err) reject(err); else resolve(this.lastID); });
         });
         
-        // Get chains to process
+        // All chains supported by Aave API
         const chainsToProcess = targetChain ? [targetChain] : 
-            ['ethereum', 'polygon', 'avalanche', 'arbitrum', 'optimism', 'base'];
+            ['ethereum', 'polygon', 'avalanche', 'arbitrum', 'optimism', 'base', 'gnosis', 'metis', 'scroll', 'linea', 'zksync', 'mantle', 'sonic', 'bsc', 'celo', 'plasma'];
         
         let totalReserves = 0;
         for (const chain of chainsToProcess) {

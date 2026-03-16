@@ -1,0 +1,1 @@
+{"functions":[{"bundler":"zisi","buildData":{"runtimeAPIVersion":1},"mainFile":"/home/node/.openclaw/workspace/aave-db/netlify/functions/data.js","name":"data","priority":10,"runtimeVersion":"nodejs24.x","path":"/home/node/.openclaw/workspace/aave-db/.netlify/functions/data.zip","runtime":"js"}],"system":{"arch":"arm64","platform":"linux"},"timestamp":1773688342092,"version":1}

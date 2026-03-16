@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS chains (
 CREATE TABLE IF NOT EXISTS reserves (
     id TEXT PRIMARY KEY,
     chain_id INTEGER NOT NULL,
+    app TEXT DEFAULT 'Aave',
     underlying_asset TEXT NOT NULL,
     symbol TEXT NOT NULL,
     decimals INTEGER DEFAULT 18,
@@ -108,4 +109,12 @@ INSERT OR IGNORE INTO chains (chain_id, name, network) VALUES
     (10, 'optimism', 'mainnet'),
     (8453, 'base', 'mainnet'),
     (100, 'gnosis', 'mainnet'),
-    (1088, 'metis', 'mainnet');
+    (1088, 'metis', 'mainnet'),
+    (534352, 'scroll', 'mainnet'),
+    (59144, 'linea', 'mainnet'),
+    (324, 'zksync', 'mainnet'),
+    (5000, 'mantle', 'mainnet'),
+    (146, 'sonic', 'mainnet'),
+    (56, 'bsc', 'mainnet'),
+    (42220, 'celo', 'mainnet'),
+    (9745, 'plasma', 'mainnet');
