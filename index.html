@@ -79,6 +79,7 @@
                     <th onclick="sortTable('app')">App</th>
                     <th onclick="sortTable('symbol')">Asset</th>
                     <th onclick="sortTable('chain')">Chain</th>
+                    <th onclick="sortTable('market')">Market</th>
                     <th onclick="sortTable('supply')">Supply APY</th>
                     <th onclick="sortTable('change1d')">1d</th>
                     <th onclick="sortTable('change7d')">7d</th>
@@ -137,6 +138,7 @@
                 switch(sortState.col) {
                     case 'rank': return sortState.dir === 'asc' ? 1 : -1;
                     case 'app': valA=a.app||'Aave'; valB=b.app||'Aave'; break;
+                    case 'market': valA=a.market||'Core'; valB=b.market||'Core'; break;
                     case 'symbol': valA=a.symbol; valB=b.symbol; break;
                     case 'chain': valA=a.chain; valB=b.chain; break;
                     case 'supply': valA=a.supply_rate; valB=b.supply_rate; break;
@@ -156,6 +158,7 @@
                     <td><span class="badge app-badge">${x.app||'Aave'}</span></td>
                     <td class="symbol">${x.symbol}<span class="badge">Stable</span></td>
                     <td>${x.chain}</td>
+                    <td>${x.chain === 'ethereum' ? `<span class="badge market-badge">${x.market||'Core'}</span>` : '-'}</td>
                     <td class="apy positive">${fmtAPY(x.supply_rate)}</td>
                     <td>${fmtChange(x.supply_rate_change_1d)}</td>
                     <td>${fmtChange(x.supply_rate_change_7d)}</td>
@@ -164,7 +167,7 @@
             `).join('');
             
             document.querySelectorAll('#supplyTable th').forEach(th => th.classList.remove('sort-asc','sort-desc'));
-            const headers = ['rank','app','symbol','chain','supply','change1d','change7d','tvl'];
+            const headers = ['rank','app','symbol','chain','market','supply','change1d','change7d','tvl'];
             const idx = headers.indexOf(sortState.col);
             if(idx>=0) document.querySelectorAll('#supplyTable th')[idx].classList.add(sortState.dir==='asc'?'sort-asc':'sort-desc');
         }
@@ -174,7 +177,7 @@
                 sortState.dir = sortState.dir === 'asc' ? 'desc' : 'asc';
             } else {
                 sortState.col = col;
-                sortState.dir = col === 'symbol' || col === 'chain' || col === 'app' ? 'asc' : 'desc';
+                sortState.dir = col === 'symbol' || col === 'chain' || col === 'app' || col === 'market' ? 'asc' : 'desc';
             }
             renderSupply();
         }
