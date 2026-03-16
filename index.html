@@ -138,7 +138,13 @@
                 switch(sortState.col) {
                     case 'rank': return sortState.dir === 'asc' ? 1 : -1;
                     case 'app': valA=a.app||'Aave'; valB=b.app||'Aave'; break;
-                    case 'market': valA=a.market||'Core'; valB=b.market||'Core'; break;
+                    case 'market': 
+                        // For market sort: Ethereum tokens with markets vs non-Ethereum (showing '-')
+                        if (a.chain === 'ethereum' && b.chain !== 'ethereum') return sortState.dir === 'asc' ? -1 : 1;
+                        if (a.chain !== 'ethereum' && b.chain === 'ethereum') return sortState.dir === 'asc' ? 1 : -1;
+                        valA = a.market || 'Core';
+                        valB = b.market || 'Core';
+                        break;
                     case 'symbol': valA=a.symbol; valB=b.symbol; break;
                     case 'chain': valA=a.chain; valB=b.chain; break;
                     case 'supply': valA=a.supply_rate; valB=b.supply_rate; break;
