@@ -56,10 +56,10 @@ db.all(`
       continue;
     }
     
-    const key = r.symbol + '_' + r.chain;
+    const key = r.symbol + '_' + r.chain + '_' + (r.app || 'Aave');
     if (!seen.has(key)) {
       seen.add(key);
-      unique.push({...r, app: 'Aave'});
+      unique.push(r); // Keep original app value from DB
     }
   }
   
