@@ -66,6 +66,10 @@
                 <div class="metric-label">Chains</div>
             </div>
             <div class="metric">
+                <div class="metric-value" id="appsTracked">-</div>
+                <div class="metric-label">Apps</div>
+            </div>
+            <div class="metric">
                 <div class="metric-value" id="topSupplyRate">-</div>
                 <div class="metric-label">Top Supply APY</div>
             </div>
@@ -245,6 +249,7 @@
                 
                 document.getElementById('totalReserves').textContent = d.topSupply.length;
                 document.getElementById('chainsTracked').textContent = new Set(d.topSupply.map(x=>x.chain)).size;
+                document.getElementById('appsTracked').textContent = new Set(d.topSupply.map(x=>x.app)).size;
                 document.getElementById('topSupplyRate').textContent = supplyData[0] ? fmtAPY(supplyData[0].supply_rate) : '-';
                 
                 renderSupply();

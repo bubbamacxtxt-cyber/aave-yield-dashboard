@@ -282,7 +282,16 @@ async function fetchChainData(db, chainName) {
                     }
                     
                     const token = reserve.underlyingToken;
-                    const marketName = market.name || 'Core';
+                    const apiMarketName = market.name || 'Core';
+                    
+                    // Map API market names to display names
+                    const marketNameMap = {
+                        'AaveV3Ethereum': 'Core',
+                        'AaveV3EthereumLido': 'Prime',
+                        'AaveV3EthereumEtherFi': 'EtherFi',
+                        'AaveV3EthereumHorizon': 'Horizon'
+                    };
+                    const marketName = marketNameMap[apiMarketName] || apiMarketName;
                     const reserveId = `${chainName}_${marketName}_${token.address}`;
                     
                     const reserveData = {
