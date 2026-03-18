@@ -250,7 +250,10 @@
                 document.getElementById('totalReserves').textContent = d.topSupply.length;
                 document.getElementById('chainsTracked').textContent = new Set(d.topSupply.map(x=>x.chain)).size;
                 document.getElementById('appsTracked').textContent = new Set(d.topSupply.map(x=>x.app)).size;
-                document.getElementById('topSupplyRate').textContent = supplyData[0] ? fmtAPY(supplyData[0].supply_rate) : '-';
+                
+                // Find highest APY among stables
+                const topStable = supplyData.sort((a,b) => b.supply_rate - a.supply_rate)[0];
+                document.getElementById('topSupplyRate').textContent = topStable ? fmtAPY(topStable.supply_rate) : '-';
                 
                 renderSupply();
                 renderBorrow();
