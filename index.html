@@ -56,7 +56,7 @@
             border: 2px solid var(--bg-tertiary);
             border-bottom: 2px solid var(--accent-primary); /* Blood red base line */
         }
-        .metric-value { font-size: 2rem; font-weight: 700; color: var(--accent-primary); }
+        .metric-value { font-size: 2rem; font-weight: 700; color: #FF1744; }
         .metric-label { color: var(--text-secondary); font-size: 14px; margin-top: 5px; }
         /* Section headers like dojo banners */
         h2 { 
@@ -241,6 +241,21 @@
             return `<span class="${cls}">${sign}${v.toFixed(2)}%</span>`;
         }
         
+        // Get favicon URL for app using Google's service
+        function getAppFavicon(app) {
+            const domains = {
+                'Aave': 'https://aave.com',
+                'Fluid': 'https://fluid.instadapp.io'
+            };
+            const domain = domains[app] || 'https://' + app.toLowerCase() + '.com';
+            return `https://www.google.com/s2/favicons?domain_url=${domain}&sz=16`;
+        }
+        
+        function renderAppBadge(app) {
+            const faviconUrl = getAppFavicon(app);
+            return `<span class="badge app-badge"><img src="${faviconUrl}" width="12" height="12" style="vertical-align:middle;margin-right:4px;" alt="">${app||'Aave'}</span>`;
+        }
+        
         function renderSupply() {
             const sorted = [...supplyData].sort((a,b) => {
                 let valA, valB;
@@ -270,7 +285,7 @@
             document.getElementById('supplyBody').innerHTML = sorted.map((x,i)=>`
                 <tr>
                     <td>${i+1}</td>
-                    <td><span class="badge app-badge">${x.app||'Aave'}</span></td>
+                    <td>${renderAppBadge(x.app)}</td>
                     <td class="symbol">${x.symbol}<span class="badge">Stable</span></td>
                     <td>${x.chain}</td>
                     <td>${x.chain === 'ethereum' ? `<span class="badge market-badge">${x.market||'Core'}</span>` : '-'}</td>
@@ -315,7 +330,7 @@
             document.getElementById('borrowBody').innerHTML = sorted.map((x,i)=>`
                 <tr>
                     <td>${i+1}</td>
-                    <td><span class="badge app-badge">${x.app||'Aave'}</span></td>
+                    <td>${renderAppBadge(x.app)}</td>
                     <td class="symbol">${x.symbol}<span class="badge">Stable</span></td>
                     <td>${x.chain}</td>
                     <td class="apy">${fmtAPY(x.borrow_rate)}</td>
