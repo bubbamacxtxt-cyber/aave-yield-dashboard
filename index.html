@@ -5,48 +5,137 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yield Dashboard</title>
     <style>
+        /* Brand Kit: Japanese Martial Arts Minimalism */
+        :root {
+            --bg-primary: #0A0A0A;
+            --bg-secondary: #1A1A1A;
+            --bg-tertiary: #2A2A2A;
+            --text-primary: #F5F5F5;
+            --text-secondary: #9E9E9E;
+            --text-muted: #616161;
+            --accent-primary: #C41E3A;
+            --accent-hover: #D32F2F;
+            --positive: #2E7D32;
+            --negative: #FF8F00;
+            --aave: #B6509E;
+            --fluid: #2E8BC6;
+        }
+        
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a0e27; color: #fff; line-height: 1.6; }
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            background: var(--bg-primary); 
+            color: var(--text-primary); 
+            line-height: 1.6; 
+        }
         .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
         header { margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
-        h1 { color: #b6509e; font-size: 2rem; }
+        h1 { color: var(--text-primary); font-size: 2rem; font-weight: 700; }
         .nav { display: flex; gap: 15px; }
-        .nav a { color: #2ebac6; text-decoration: none; padding: 8px 16px; border: 1px solid #2ebac6; border-radius: 6px; }
-        .nav a:hover, .nav a.active { background: #2ebac6; color: #0a0e27; }
-        .subtitle { color: #888; }
-        .last-update { color: #666; font-size: 14px; margin-top: 10px; }
+        .nav a { 
+            color: var(--text-primary); 
+            text-decoration: none; 
+            padding: 10px 20px; 
+            border: 1px solid var(--accent-primary); 
+            border-radius: 6px; 
+            font-weight: 500;
+        }
+        .nav a:hover, .nav a.active { 
+            background: var(--accent-primary); 
+            color: var(--text-primary); 
+        }
+        .subtitle { color: var(--text-secondary); }
+        .last-update { color: var(--text-muted); font-size: 14px; margin-top: 10px; }
         .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .metric { background: #1a1f3a; padding: 20px; border-radius: 12px; text-align: center; }
-        .metric-value { font-size: 2rem; font-weight: bold; color: #b6509e; }
-        .metric-label { color: #888; font-size: 14px; margin-top: 5px; }
-        h2 { color: #2ebac6; border-bottom: 2px solid #333; padding-bottom: 10px; margin: 40px 0 20px; }
-        table { width: 100%; border-collapse: collapse; background: #1a1f3a; border-radius: 12px; overflow: hidden; font-size: 13px; }
-        th { background: #0f1329; padding: 12px 10px; text-align: left; color: #2ebac6; font-weight: 600; font-size: 13px; cursor: pointer; user-select: none; white-space: nowrap; }
-        th:hover { background: #1a1f3a; }
-        th.sort-asc::after { content: ' ▲'; }
-        th.sort-desc::after { content: ' ▼'; }
-        td { padding: 10px; border-bottom: 1px solid #252a47; }
-        tr:hover { background: #252a47; }
+        .metric { 
+            background: var(--bg-secondary); 
+            padding: 20px; 
+            border-radius: 8px; 
+            text-align: center;
+            border: 1px solid var(--bg-tertiary);
+        }
+        .metric-value { font-size: 2rem; font-weight: 700; color: var(--accent-primary); }
+        .metric-label { color: var(--text-secondary); font-size: 14px; margin-top: 5px; }
+        h2 { 
+            color: var(--text-primary); 
+            border-bottom: 2px solid var(--bg-tertiary); 
+            padding-bottom: 10px; 
+            margin: 40px 0 20px;
+            font-weight: 600;
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            background: var(--bg-secondary); 
+            overflow: hidden; 
+            font-size: 13px;
+            border: 1px solid var(--bg-tertiary);
+        }
+        th { 
+            background: var(--bg-tertiary); 
+            padding: 12px 10px; 
+            text-align: left; 
+            color: var(--text-primary); 
+            font-weight: 600; 
+            font-size: 13px; 
+            cursor: pointer; 
+            user-select: none; 
+            white-space: nowrap;
+            border-bottom: 1px solid var(--text-muted);
+        }
+        th:hover { background: var(--bg-tertiary); filter: brightness(110%); }
+        th.sort-asc::after { content: ' ▲'; color: var(--accent-primary); }
+        th.sort-desc::after { content: ' ▼'; color: var(--accent-primary); }
+        td { padding: 10px; border-bottom: 1px solid var(--bg-tertiary); }
+        tr:hover { background: var(--bg-tertiary); }
         tr:last-child td { border-bottom: none; }
-        .positive { color: #4ade80; }
-        .negative { color: #f87171; }
-        .neutral { color: #888; }
+        .positive { color: var(--positive); }
+        .negative { color: var(--negative); }
+        .neutral { color: var(--text-muted); }
         .symbol { font-weight: 600; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-        .badge { background: #4ade80; color: #0a0e27; padding: 2px 6px; border-radius: 10px; font-size: 9px; font-weight: 600; }
-        .app-badge { background: #b6509e; color: #fff; }
-        .market-badge { background: #2ebac6; color: #0a0e27; font-size: 8px; }
+        .badge { 
+            background: var(--text-primary); 
+            color: var(--bg-primary); 
+            padding: 2px 6px; 
+            border-radius: 4px; 
+            font-size: 9px; 
+            font-weight: 600; 
+        }
+        .app-badge { background: var(--aave); color: var(--text-primary); }
+        .app-badge[data-app="Fluid"] { background: var(--fluid); }
+        .market-badge { 
+            background: var(--accent-primary); 
+            color: var(--text-primary); 
+            font-size: 10px;
+            font-weight: 500;
+        }
         .apy { font-weight: 600; font-size: 14px; }
-        .tvl { color: #aaa; font-size: 12px; }
-        .loading { text-align: center; padding: 40px; color: #888; }
-        .error { background: #2d1f1f; color: #f87171; padding: 20px; border-radius: 8px; margin: 20px 0; }
-        footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #333; color: #666; font-size: 12px; text-align: center; }
+        .apy.positive { color: var(--positive); }
+        .tvl { color: var(--text-secondary); font-size: 12px; }
+        .loading { text-align: center; padding: 40px; color: var(--text-muted); }
+        .error { 
+            background: var(--bg-secondary); 
+            color: var(--negative); 
+            padding: 20px; 
+            border: 1px solid var(--negative);
+            border-radius: 8px; 
+            margin: 20px 0; 
+        }
+        footer { 
+            margin-top: 60px; 
+            padding-top: 20px; 
+            border-top: 1px solid var(--bg-tertiary); 
+            color: var(--text-muted); 
+            font-size: 12px; 
+            text-align: center; 
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
             <div>
-                <h1>📊 Yield Dashboard</h1>
+                <h1>Yield Dashboard</h1>
                 <p class="subtitle">Stablecoin Lending Rates from Database</p>
                 <p class="last-update">Last database update: <span id="lastUpdate">Loading...</span></p>
             </div>
