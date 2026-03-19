@@ -5,28 +5,70 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Token List</title>
     <style>
+        :root {
+            --bg-primary: #0A0A0A;
+            --bg-secondary: #1A1A1A;
+            --bg-tertiary: #2A2A2A;
+            --text-primary: #FFFFFF;
+            --text-secondary: #FFFFFF;
+            --accent-primary: #FF1744;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
-            background: #0a0e27; 
-            color: #fff; 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
+            background: var(--bg-primary); 
+            color: var(--text-primary); 
             padding: 20px;
             max-width: 400px;
+            line-height: 1.6;
         }
-        h1 { color: #b6509e; font-size: 1.5rem; }
-        .nav { margin: 20px 0; }
-        .nav a { color: #2ebac6; text-decoration: none; }
-        .count { color: #888; margin: 10px 0; }
+        
+        h1 { 
+            color: var(--text-primary); 
+            font-size: 1.5rem; 
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        
+        .nav { margin: 24px 0; }
+        
+        .nav a { 
+            color: var(--text-primary); 
+            text-decoration: none; 
+            padding: 10px 20px;
+            border: 1px solid var(--accent-primary);
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        
+        .nav a:hover { 
+            background: var(--accent-primary); 
+        }
+        
+        .count { 
+            color: var(--text-secondary); 
+            margin: 16px 0; 
+            font-weight: 600;
+        }
+        
         .token-list { 
-            background: #1a1f3a; 
-            padding: 10px 20px; 
-            border-radius: 8px;
+            background: var(--bg-secondary); 
+            padding: 16px 20px; 
+            border-radius: 4px;
+            border: 2px solid var(--bg-tertiary);
+            border-bottom: 2px solid var(--accent-primary);
         }
+        
         .token { 
-            padding: 8px 0; 
-            border-bottom: 1px solid #333;
-            font-family: monospace;
+            padding: 12px 0; 
+            border-bottom: 1px solid var(--bg-tertiary);
+            font-family: 'JetBrains Mono', monospace;
             font-size: 14px;
+            font-weight: 600;
         }
+        
         .token:last-child { border-bottom: none; }
     </style>
 </head>
@@ -40,11 +82,9 @@
         fetch('data.json')
             .then(r => r.json())
             .then(data => {
-                // Same filter as yield dashboard - only stables
                 const STABLECOINS = ['USDC','USDT','DAI','USDe','USDS','FRAX','LUSD','GHO','crvUSD','sUSD','USDG','AUSD','RLUSD','USDtb','USCC','USDT0','sUSDe','syrupUSDC','syrupUSDT','USDbC','FDUSD','mUSD','sDAI','WXDAI','EURe','PT-'];
                 const isStable = s => STABLECOINS.some(x => s.toUpperCase().includes(x.toUpperCase()));
                 
-                // Get unique stable ticker symbols only
                 const symbols = [...new Set(data.topSupply.filter(r => isStable(r.symbol)).map(r => r.symbol))].sort();
                 
                 document.getElementById('count').textContent = symbols.length + ' unique stable tokens';
