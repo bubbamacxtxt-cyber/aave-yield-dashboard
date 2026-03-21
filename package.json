@@ -6,6 +6,9 @@
   "scripts": {
     "fetch": "node fetch-aave.js",
     "fetch:ethereum": "node fetch-aave.js ethereum",
+    "fetch:fluid": "node fetch-fluid.js",
+    "fetch:all": "node fetch-aave.js && node fetch-fluid.js",
+    "export": "node export-data.js",
     "query": "node query.js",
     "test": "echo 'Run: npm run fetch' to test"
   },
