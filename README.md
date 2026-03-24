@@ -1,22 +1,42 @@
-# Aave Protocol Database
+# Aave Yield Dashboard
 
-SQLite-based tracker for Aave lending protocol data. Tracks supply rates, borrow rates, TVL across chains.
+DeFi yield tracker for **Aave v3** and **Fluid** lending protocols. Tracks supply rates, borrow rates, TVL across 16+ chains.
+
+**GitHub:** bubbamacxtxt-cyber/aave-yield-dashboard
+**Live:** https://bubbamacxtxt-cyber.github.io/aave-yield-dashboard/
+
+---
+
+## What It Tracks
+
+- **Aave v3**: 506 lending pools across 16 chains via GraphQL API
+- **Fluid**: 32 lending pools across 6 chains via official API
+- **Total**: 538 pools with supply/borrow rates and TVL
+
+## Data Sources
+
+| Protocol | API | Auth | Chains |
+|----------|-----|------|--------|
+| Aave v3 | `https://api.v3.aave.com/graphql` | None | 20+ chains |
+| Fluid | `https://api.fluid.instadapp.io/v2/lending/{chainId}/tokens` | None | ETH, Polygon, Arbitrum, Base, BSC, Plasma |
 
 ## Setup
 
 ```bash
-cd aave-db
 npm install
 ```
 
-## Daily Fetch
+## Fetch Data
 
 ```bash
-# Fetch all chains
-npm run fetch
+# Fetch Aave data
+node fetch-aave.js
 
-# Or specific chain
-npm run fetch ethereum
+# Fetch Fluid data  
+node fetch-fluid.js
+
+# Export to JSON for dashboard
+node export-data.js
 ```
 
 ## Query Data
@@ -44,43 +64,49 @@ node query.js search USDC
 node query.js stats
 ```
 
-## Database Schema
+## Database
 
-- **chains** - Supported networks (Ethereum, Polygon, etc.)
-- **reserves** - Lending pools (USDC, USDT, WETH, etc.)
-- **reserve_snapshots** - Daily rates and TVL data
-- **rate_changes** - Computed 1d/7d/30d changes + alerts
-- **sync_log** - Track fetch operations
+SQLite database (`aave.db`) with schema:
 
-## API Source
+- **reserves** — Lending pool details (token, chain, rates, TVL)
+- **chains** — Supported networks
+- **reserve_snapshots** — Historical rates and TVL data
+- **sync_log** — Fetch operation tracking
 
-- **Aave v3 GraphQL**: `https://api.v3.aave.com/graphql`
-- **Free**: No API key required
-- **Rate limits**: None documented (be respectful)
+## GitHub Actions
 
-## For Discord Bot Integration
+Automated data updates via `.github/workflows/update-data.yml`:
+- Runs every 12 hours (staggered: Aave at 00:00, Fluid at 06:00 UTC)
+- Fetches fresh data from both APIs
+- Exports to JSON for dashboard
+- Commits and pushes to GitHub
 
-```javascript
-const { AaveDB } = require('./query.js');
-const db = new AaveDB();
+## Files
 
-// Get top yields
-const top = await db.getTopSupplyRates('ethereum', 100000, 5);
-
-// Check alerts
-const alerts = await db.getAlerts();
-
-// Search token
-const results = await db.search('USDC');
-
-db.close();
+```
+├── fetch-aave.js          # Aave v3 GraphQL fetcher
+├── fetch-fluid.js         # Fluid REST API fetcher
+├── export-data.js         # Export database to data.json
+├── export-all.js          # Full export with all fields
+├── query.js               # CLI query tool
+├── schema.sql             # Database schema
+├── dashboard-new.html     # Main dashboard
+├── dashboard-local.html   # Local development version
+├── dashboard-static.html  # Static export
+├── index.html             # Landing page
+├── tokens.html            # Token viewer
+├── server.js              # Express dev server
+└── aave.db                # SQLite database
 ```
 
-## Cron Job
+## API Rate Limits
 
-Add to OpenClaw for daily updates:
-```
-openclaw cron add --name aave:daily-update --cron "0 9 * * *" \
-  --message "/exec node /workspace/aave-db/fetch-aave.js" \
-  --announce
-```
+| API | Limit | Our Usage |
+|-----|-------|-----------|
+| Aave v3 GraphQL | None documented | ~50 queries per fetch |
+| Fluid REST | None documented | 6 queries per fetch (one per chain) |
+
+## Related Projects
+
+- [Yield Portal](https://github.com/bubbamacxtxt-cyber/yield-portal) — Multi-protocol yield analytics via Portals API
+- [Protocol Yield Tracker](https://github.com/bubbamacxtxt-cyber/protocol-yield-tracker) — Wallet position analyzer (Aave v3, Morpho)
